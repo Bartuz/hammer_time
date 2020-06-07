@@ -16,11 +16,14 @@ class App < Sinatra::Base
     day_param = params[:day]
     return 'Please specify ?oauth=xxx in URL params' if oauth.empty?
     return 'Please specify ?day=2020-04-20 in URL params' if day_param.empty?
+
     date_filter = Date.parse(day_param)
 
     users_profiles(oauth)
-    user_matching_day = users_profiles(oauth).find { |user| user[:created_at] == date_filter }
-    ban_single_user(oauth, user_matching_day[:user])
+    users_profiles_to_be_banned = users_profiles(oauth).filter { |profile| profile[:created_at] == date_filter }
+    users_to_be_banned = users_profiles_to_be_banned.map { |profile| profile[:user] }
+    ban_users(oauth, users_to_be_banned)
+    "banned: #{users_to_be_banned}"
   end
 
   get '/health' do
@@ -34,13 +37,13 @@ class App < Sinatra::Base
 
   def users_profiles(oauth)
     users_ids = Array(user_names).join(',')
-    headers = { 'Accept': 'application/vnd.twitchtv.v5+json', 'Authorization': "OAuth #{oauth}"}
+    headers = { 'Accept': 'application/vnd.twitchtv.v5+json', 'Authorization': "OAuth #{oauth}" }
     @response_users_profiles ||= JSON.parse(HTTParty.get("https://api.twitch.tv/kraken/users?login=#{users_ids}", headers: headers).body)
     @response_users_profiles['users'].map { |profile| { user: profile['name'], created_at: Date.parse(profile['created_at']) } }.flatten
   end
 
-  def ban_single_user(oauth, user)
-    body = [
+  def ban_users(oauth, users)
+    banning_payload = users.map do |user|
       {
         "operationName": 'Chat_BanUserFromChatRoom',
         "variables": {
@@ -57,7 +60,8 @@ class App < Sinatra::Base
           }
         }
       }
-    ].to_json
+    end
+    body = banning_payload.to_json
     headers = { 'Content-Type': 'text/plain;charset=UTF-8', 'Authorization': "OAuth #{oauth}" }
     HTTParty.post('https://gql.twitch.tv/gql', body: body, headers: headers)
   end
