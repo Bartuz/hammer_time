@@ -13,10 +13,14 @@ class App < Sinatra::Base
 
   get '/ban' do
     oauth = params[:oauth]
+    day_param = params[:day]
     return 'Please specify ?oauth=xxx in URL params' if oauth.empty?
+    return 'Please specify ?day=2020-04-20 in URL params' if day_param.empty?
+    date_filter = Date.parse(day_param)
 
-    ban_single_user(oauth)
-    users_profiles(oauth).to_json
+    users_profiles(oauth)
+    user_matching_day = users_profiles(oauth).find { |user| user[:created_at] == date_filter }
+    ban_single_user(oauth, user_matching_day[:user])
   end
 
   get '/health' do
@@ -35,14 +39,14 @@ class App < Sinatra::Base
     @response_users_profiles['users'].map { |profile| { user: profile['name'], created_at: Date.parse(profile['created_at']) } }.flatten
   end
 
-  def ban_single_user(oauth)
+  def ban_single_user(oauth, user)
     body = [
       {
         "operationName": 'Chat_BanUserFromChatRoom',
         "variables": {
           "input": {
             "channelID": '487312485',
-            "bannedUserLogin": 'b4dbw0y',
+            "bannedUserLogin": user,
             "expiresIn": nil
           }
         },
