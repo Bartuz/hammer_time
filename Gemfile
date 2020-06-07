@@ -1,14 +1,17 @@
+# frozen_string_literal: true
+
 source 'https://rubygems.org'
 
-gem 'sinatra'
-gem 'sinatra-contrib'
 gem 'activesupport'
 gem 'httparty'
+gem 'sinatra'
+gem 'sinatra-contrib'
 
 group :development, :test do
   gem 'bundler-audit', require: false
   gem 'pry'
+  gem 'rack-test'
   gem 'rerun'
   gem 'rspec'
-  gem 'rack-test'
+  gem 'rubocop'
 end
