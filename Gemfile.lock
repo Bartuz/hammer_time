@@ -103,6 +103,7 @@ DEPENDENCIES
   bundler-audit
   httparty
   pry
+  rack
   rack-test
   rerun
   rspec

@@ -6,6 +6,7 @@ gem 'activesupport'
 gem 'httparty'
 gem 'sinatra'
 gem 'sinatra-contrib'
+gem 'rack'
 
 group :development, :test do
   gem 'bundler-audit', require: false
