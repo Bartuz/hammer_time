@@ -4,7 +4,6 @@ require 'sinatra'
 require 'sinatra/base'
 require 'sinatra/reloader'
 require 'httparty'
-require 'pry'
 
 class App < Sinatra::Base
   configure :development do
