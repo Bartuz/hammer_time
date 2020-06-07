@@ -13,11 +13,9 @@ class App < Sinatra::Base
   get '/ban' do
     oauth = params[:oauth]
     day_param = params[:day]
-    channel_id = params[:channel_id]
     channel_name = params[:channel_name]
     return 'Please specify ?oauth=xxx in URL params' if oauth.nil?
     return 'Please specify ?day=2020-04-20 in URL params' if day_param.nil?
-    return 'Please specify ?channel_id=XXXX in URL params' if channel_id.nil?
     if channel_name.nil?
       return 'Please specify ?channel_name=XXXX in URL params'
     end
@@ -26,8 +24,8 @@ class App < Sinatra::Base
 
     users_profiles_to_be_banned = users_profiles(oauth, channel_name).filter { |profile| profile[:created_at] == date_filter }
     users_to_be_banned = users_profiles_to_be_banned.map { |profile| profile[:user] }
-    ban_users(oauth: oauth, users: users_to_be_banned, channel_id: channel_id)
-    "banned: #{users_to_be_banned}"
+    ban_users(oauth: oauth, users: users_to_be_banned, channel_id: channel_id(oauth))
+    "banned: #{users_to_be_banned.join('\n')}"
   end
 
   get '/health' do
@@ -35,8 +33,8 @@ class App < Sinatra::Base
   end
 
   def user_names(channel)
-    @response_user_names ||= JSON.parse(HTTParty.get("https://tmi.twitch.tv/group/user/#{channel}/chatters").body)
-    @response_user_names['chatters'].map { |_group, members| members }.flatten
+    response_user_names ||= JSON.parse(HTTParty.get("https://tmi.twitch.tv/group/user/#{channel}/chatters").body)
+    response_user_names['chatters'].map { |_group, members| members }.flatten
   end
 
   def users_profiles(oauth, channel_name)
@@ -71,5 +69,11 @@ class App < Sinatra::Base
       body = slice_payload.to_json
       puts(HTTParty.post('https://gql.twitch.tv/gql', body: body, headers: headers))
     end
+  end
+
+  def channel_id(oauth)
+    headers = { 'Accept': 'application/vnd.twitchtv.v5+json', 'Authorization': "OAuth #{oauth}" }
+    response = JSON.parse(HTTParty.get("https://api.twitch.tv/kraken/channel", headers: headers).body)
+    response['_id']
   end
 end

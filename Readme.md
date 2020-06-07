@@ -6,13 +6,12 @@ It will ban EVERYONE from your current viewers on twitch that created account in
 
 Example request:
 
- https://ban-hammer-time.herokuapp.com/ban?oauth=XXX&day=2018-12-13&channel_id=487312410&channel_name=wian__
+ https://ban-hammer-time.herokuapp.com/ban?oauth=XXX&day=2018-12-13&channel_name=wian__
 
 Required parameter:
 
 * oauth - Your oauth token
-* day - Filter for `created_at` field for users in your twitch stream 
-* channel_id - Id of your channel 
+* day - Filter for `created_at` field for users in your twitch stream s
 * channel_name - your channel name (eg. wian__)
 
 If you don't know how to get your oauth token you can run in browser console:
