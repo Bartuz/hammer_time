@@ -14,15 +14,17 @@ class App < Sinatra::Base
   get '/ban' do
     oauth = params[:oauth]
     day_param = params[:day]
-    return 'Please specify ?oauth=xxx in URL params' if oauth.empty?
-    return 'Please specify ?day=2020-04-20 in URL params' if day_param.empty?
+    channel_id = params[:channel_id]
+    return 'Please specify ?oauth=xxx in URL params' if oauth.nil?
+    return 'Please specify ?day=2020-04-20 in URL params' if day_param.nil?
+    return 'Please specify ?channel_id=XXXX in URL params' if channel_id.nil?
 
     date_filter = Date.parse(day_param)
 
     users_profiles(oauth)
     users_profiles_to_be_banned = users_profiles(oauth).filter { |profile| profile[:created_at] == date_filter }
     users_to_be_banned = users_profiles_to_be_banned.map { |profile| profile[:user] }
-    ban_users(oauth, users_to_be_banned)
+    ban_users(oauth: oauth, users: users_to_be_banned, channel_id: channel_id)
     "banned: #{users_to_be_banned}"
   end
 
@@ -42,13 +44,13 @@ class App < Sinatra::Base
     @response_users_profiles['users'].map { |profile| { user: profile['name'], created_at: Date.parse(profile['created_at']) } }.flatten
   end
 
-  def ban_users(oauth, users)
+  def ban_users(oauth:, users:, channel_id:)
     banning_payload = users.map do |user|
       {
         "operationName": 'Chat_BanUserFromChatRoom',
         "variables": {
           "input": {
-            "channelID": '487312485',
+            "channelID": channel_id,
             "bannedUserLogin": user,
             "expiresIn": nil
           }
