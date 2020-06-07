@@ -12,12 +12,17 @@ class App < Sinatra::Base
 
   get '/ban' do
     oath = params[:oath]
+
     ban_single_user(oath)
-    'Zrobione'
   end
 
   get '/health' do
     'Breathing'
+  end
+
+  def user_names(channel = 'kath9000')
+    response = JSON.parse(HTTParty.get("https://tmi.twitch.tv/group/user/#{channel}/chatters").body)
+    response['chatters'].map { |_group, members| members }.flatten
   end
 
   def ban_single_user(oath)
